@@ -1,4 +1,4 @@
-# blocks
+# hp-tetris
 A tetris clone for the HP Prime Graphing Calculator.
 
 This is a tetris clone made for the HP Prime graphing calculator written in the HP BASIC programming language that the calculator uses. I made it by making a bunch of improvements to Kevin Barbier’s “BRICKS” game (you can see the changes in the changelog). 
