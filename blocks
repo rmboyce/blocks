@@ -1,0 +1,1073 @@
+//
+// BRICKS V0.4
+// Initial version by Kevin Barbier
+// Improvements by Ramsey Boyce
+//
+
+//
+// Global variables
+//
+
+// ---- KEY CONFIG ----
+LEFT_KEY:=14;
+RIGHT_KEY:=15;
+DOWN_KEY:=21;
+MAX_DOWN_KEY:=30;
+ROTATE_KEY:=19;
+HOLD_KEY:=20;
+PAUSE_KEY:=0;
+HELP_KEY:=3;
+CHOOSE_KEYS_KEY:=9;
+RESET_TO_DEFAULT_KEYS_KEY:=13;
+RESET_GAME_KEY:=10;
+QUIT_KEY:=4;
+// --------------------
+
+SCORE_NB_LINES:=0;
+SCORE_NB_POINTS:=0;
+
+CURRENT_X:=-1;
+CURRENT_Y:=-1;
+CURRENT_SHAPE_TYPE:=-1;
+NEXT_SHAPE_TYPE:=-1;
+NEXT_SHAPE_ORIENTATION:=-1;
+CURRENT_ORIENTATION:=-1;
+CURRENT_COLOR:=-1;
+
+HOLD_SHAPE_TYPE:=-1;
+HOLD_SHAPE_ORIENTATION:=-1;
+
+TEXT_DIGIT_WIDTH:=8;
+
+// 'Bag' that bricks get chosen from (without replacement) until empty, then 'refilled'
+// I, O, T, Z, S, J, L
+BRICK_BAG:={0, 0, 0, 0, 0, 0, 0};
+
+BRICK_SIZE:=12;
+
+BRICK_COLORS:={[0, 255, 255], [255, 255, 0], [200, 0, 255], [255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 100, 0]};
+
+BRICKS_TAB_W:=10;
+BRICKS_TAB_H:=20;
+BRICKS_TAB:=[[-1,-1],[-1,-1]];
+
+GAME_OFFSET_X:=100;
+GAME_OFFSET_Y:=0;
+
+NB_SHAPES:=7;
+NB_ORIENTATIONS:=4;
+
+SHAPES_W:={4,3,4,2,
+           2,2,2,2,
+           3,3,3,2,
+           3,3,3,2,
+           3,3,3,2,
+           3,3,3,2, 
+           3,3,3,2};
+
+SHAPES_H:={2,4,3,4,
+           2,2,2,2,
+           2,3,3,3,
+           2,3,3,3,
+           2,3,3,3,
+           2,3,3,3,
+           2,3,3,3};
+
+SHAPES_LEFT_START:={0,2,0,1,
+           0,0,0,0,
+           0,1,0,0,
+           0,1,0,0,
+           0,1,0,0,
+           0,1,0,0, 
+           0,1,0,0};
+
+SHAPES_TOP_START:={1,0,2,0,
+           0,0,0,0,
+           0,0,1,0,
+           0,0,1,0,
+           0,0,1,0,
+           0,0,1,0,
+           0,0,1,0};
+
+// I, O, T, Z, S, J, L
+
+SHAPES:={
+         [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+         [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],
+         [[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],
+         [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]],
+         
+         [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+         [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+         [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+         [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+         
+         [[0,1,0,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]],
+         [[0,1,0,0],[0,1,1,0],[0,1,0,0],[0,0,0,0]],
+         [[0,0,0,0],[1,1,1,0],[0,1,0,0],[0,0,0,0]],
+         [[0,1,0,0],[1,1,0,0],[0,1,0,0],[0,0,0,0]],
+
+         [[1,1,0,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],
+         [[0,0,1,0],[0,1,1,0],[0,1,0,0],[0,0,0,0]],
+         [[0,0,0,0],[1,1,0,0],[0,1,1,0],[0,0,0,0]],
+         [[0,1,0,0],[1,1,0,0],[1,0,0,0],[0,0,0,0]],
+
+         [[0,1,1,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+         [[0,1,0,0],[0,1,1,0],[0,0,1,0],[0,0,0,0]],
+         [[0,0,0,0],[0,1,1,0],[1,1,0,0],[0,0,0,0]],
+         [[1,0,0,0],[1,1,0,0],[0,1,0,0],[0,0,0,0]],
+
+         [[1,0,0,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]],
+         [[0,1,1,0],[0,1,0,0],[0,1,0,0],[0,0,0,0]],
+         [[0,0,0,0],[1,1,1,0],[0,0,1,0],[0,0,0,0]],
+         [[0,1,0,0],[0,1,0,0],[1,1,0,0],[0,0,0,0]],
+
+         [[0,0,1,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]],
+         [[0,1,0,0],[0,1,0,0],[0,1,1,0],[0,0,0,0]],
+         [[0,0,0,0],[1,1,1,0],[1,0,0,0],[0,0,0,0]],
+         [[1,1,0,0],[0,1,0,0],[0,1,0,0],[0,0,0,0]]
+         };
+
+//SHAPES:={
+//         [[1,1,1,1],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,0,0,0],[1,0,0,0],[1,0,0,0],[1,0,0,0]],
+//         [[1,1,1,1],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,0,0,0],[1,0,0,0],[1,0,0,0],[1,0,0,0]],
+//         
+//         [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+//         
+//         [[0,1,0,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,0,0,0],[1,1,0,0],[1,0,0,0],[0,0,0,0]],
+//         [[1,1,1,0],[0,1,0,0],[0,0,0,0],[0,0,0,0]],
+//         [[0,1,0,0],[1,1,0,0],[0,1,0,0],[0,0,0,0]],
+//
+//         [[1,1,0,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],
+//         [[0,1,0,0],[1,1,0,0],[1,0,0,0],[0,0,0,0]],
+//         [[1,1,0,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],
+//         [[0,1,0,0],[1,1,0,0],[1,0,0,0],[0,0,0,0]],
+//
+//         [[0,1,1,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,0,0,0],[1,1,0,0],[0,1,0,0],[0,0,0,0]],
+//         [[0,1,1,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,0,0,0],[1,1,0,0],[0,1,0,0],[0,0,0,0]],
+//
+//         [[1,0,0,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,1,0,0],[1,0,0,0],[1,0,0,0],[0,0,0,0]],
+//         [[1,1,1,0],[0,0,1,0],[0,0,0,0],[0,0,0,0]],
+//         [[0,1,0,0],[0,1,0,0],[1,1,0,0],[0,0,0,0]],
+//
+//         [[0,0,1,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,0,0,0],[1,0,0,0],[1,1,0,0],[0,0,0,0]],
+//         [[1,1,1,0],[1,0,0,0],[0,0,0,0],[0,0,0,0]],
+//         [[1,1,0,0],[0,1,0,0],[0,1,0,0],[0,0,0,0]]
+//         };
+
+//SHAPES_W:={4,1,4,1,
+//           2,2,2,2,
+//           3,2,3,2,
+//           3,2,3,2,
+//           3,2,3,2,
+//           3,2,3,2, 
+//           3,2,3,2};
+           
+//SHAPES_H:={1,4,1,4,
+//           2,2,2,2,
+//           2,3,2,3,
+//           2,3,2,3,
+//           2,3,2,3,
+//           2,3,2,3,
+//           2,3,2,3};
+
+I_KICK_DATA:={
+            [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+            [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
+            [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+            [[0,0],[1,0],[-2,0],[1,-2],[-2,1]]
+            };
+
+O_KICK_DATA:={
+            [[0,0],[0,0],[0,0],[0,0],[0,0]],
+            [[0,0],[0,0],[0,0],[0,0],[0,0]],
+            [[0,0],[0,0],[0,0],[0,0],[0,0]],
+            [[0,0],[0,0],[0,0],[0,0],[0,0]]
+            };
+
+OTHER_SHAPE_KICK_DATA:={
+            [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+            [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+            [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+            [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]]
+            };
+
+//
+// Function declarations
+//
+
+INIT_SCREEN();
+INIT_GAME();
+DRAW_SCREEN();
+DRAW_BASE_SCREEN();
+DRAW_BRICKS_TAB();
+DRAW_CURRENT_MOVING_SHAPE();
+FLIP_SCREEN();
+GET_NEW_COLOR();
+GET_NEW_SHAPE_TYPE();
+GET_NEW_ORIENTATION();
+WAIT_KEY();
+WAIT_MS();
+DRAW_BRICK();
+GET_SHAPE();
+DRAW_SHAPE();
+COPY_SHAPE_TO_BRICKS_TAB();
+TST_SHAPE_CAN_MOVE();
+GET_SHAPE_W();
+GET_SHAPE_H();
+GET_SHAPE_LEFT_START();
+GET_SHAPE_TOP_START();
+GET_KICK_DATA();
+GET_SHAPE_CENTER_POS();
+REMOVE_LINES();
+GET_LEVEL();
+GET_SPEED();
+PAUSE();
+HELP();
+CHOOSE_KEYS();
+CHOOSE_KEY();
+RESET_TO_DEFAULT_KEYS();
+RESET_GAME();
+QUIT();
+CENTER_TEXT_NUMBER();
+
+//
+// BLOCKS()
+//
+// Main function, entry point
+//
+
+EXPORT BLOCKS()
+BEGIN
+  LOCAL BEGIN_TICKS;
+  LOCAL TURN_TIME:=GET_SPEED();
+
+  LOCAL NUM_HOLD:=0;
+
+  INIT_SCREEN();
+
+  IF BRICKS_TAB(1,1)==-1 THEN INIT_GAME(); END;
+  //PRINT("START GAME");
+  WHILE 1 DO
+    DRAW_SCREEN(CURRENT_SHAPE_TYPE, CURRENT_X, CURRENT_Y, CURRENT_ORIENTATION, CURRENT_COLOR, NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION);
+    BEGIN_TICKS:=TICKS;
+
+    WHILE TICKS<BEGIN_TICKS+TURN_TIME DO
+      // Quit
+      IF ISKEYDOWN(QUIT_KEY)<>0 THEN
+        IF QUIT()==1 THEN RETURN 0; END; 
+      END;
+
+      // Left
+      IF ISKEYDOWN(LEFT_KEY)<>0 THEN
+        IF TST_SHAPE_CAN_MOVE(CURRENT_SHAPE_TYPE, CURRENT_X-1, CURRENT_Y, CURRENT_ORIENTATION)<>0 THEN
+          CURRENT_X:=CURRENT_X−1;
+          DRAW_SCREEN(CURRENT_SHAPE_TYPE, CURRENT_X, CURRENT_Y, CURRENT_ORIENTATION, CURRENT_COLOR, NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION);
+          WAIT_MS(TURN_TIME/10);
+        END;
+      END;
+
+      // Right
+      IF ISKEYDOWN(RIGHT_KEY)<>0 THEN
+        IF TST_SHAPE_CAN_MOVE(CURRENT_SHAPE_TYPE, CURRENT_X+1, CURRENT_Y, CURRENT_ORIENTATION)<>0 THEN
+          CURRENT_X:=CURRENT_X+1;
+          DRAW_SCREEN(CURRENT_SHAPE_TYPE, CURRENT_X, CURRENT_Y, CURRENT_ORIENTATION, CURRENT_COLOR, NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION);
+          WAIT_MS(TURN_TIME/10);
+        END;
+      END;
+
+      // Drop (down)
+      IF ISKEYDOWN(DOWN_KEY)<>0 THEN
+        WAIT_MS(TURN_TIME/10);
+        BREAK;
+      END;
+
+      // Hard Drop (max down)
+      IF ISKEYDOWN(MAX_DOWN_KEY)<>0 THEN
+        WHILE TST_SHAPE_CAN_MOVE(CURRENT_SHAPE_TYPE, CURRENT_X, CURRENT_Y+1, CURRENT_ORIENTATION)<>0 DO
+          CURRENT_Y:=CURRENT_Y+1;
+        END;
+
+        WAIT_MS(TURN_TIME/4);
+        BREAK;
+      END;
+    
+      // Rotate
+      IF ISKEYDOWN(ROTATE_KEY)<>0 THEN
+        LOCAL NEW_ORIENTATION:=CURRENT_ORIENTATION;
+        IF NEW_ORIENTATION<4 THEN
+          NEW_ORIENTATION:=NEW_ORIENTATION+1;
+        ELSE
+          NEW_ORIENTATION:=1;
+        END;
+
+        LOCAL KICK_DATA:=GET_KICK_DATA(CURRENT_SHAPE_TYPE, CURRENT_ORIENTATION);
+
+        FOR N FROM 1 TO 5 DO
+          //PRINT(KICK_DATA + ", " + N);
+          //WAIT(1);
+          LOCAL X_BUMP:=KICK_DATA(N,1);
+          LOCAL Y_BUMP:=-KICK_DATA(N,2);
+          //PRINT(KICK_DATA(N));
+          //PRINT(X_BUMP + ", " + -Y_BUMP);
+          //WAIT(1);
+          IF TST_SHAPE_CAN_MOVE(CURRENT_SHAPE_TYPE, CURRENT_X+X_BUMP, CURRENT_Y+Y_BUMP, NEW_ORIENTATION)<>0 THEN
+            CURRENT_ORIENTATION:=NEW_ORIENTATION;
+            CURRENT_X:=CURRENT_X+X_BUMP;
+            CURRENT_Y:=CURRENT_Y+Y_BUMP;
+            BREAK;
+          END;
+        END;
+
+        DRAW_SCREEN(CURRENT_SHAPE_TYPE, CURRENT_X, CURRENT_Y, CURRENT_ORIENTATION, CURRENT_COLOR, NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION);
+        WAIT_MS(250);
+      END;
+
+      // Hold
+      IF ISKEYDOWN(HOLD_KEY)<>0 AND NUM_HOLD<1 THEN
+        // TO COMPLETE
+        IF HOLD_SHAPE_TYPE==-1 THEN
+          HOLD_SHAPE_TYPE:=CURRENT_SHAPE_TYPE;
+          HOLD_SHAPE_ORIENTATION:=CURRENT_ORIENTATION;
+
+          CURRENT_SHAPE_TYPE:=NEXT_SHAPE_TYPE;
+          CURRENT_ORIENTATION:=NEXT_SHAPE_ORIENTATION;
+          CURRENT_COLOR:=CURRENT_SHAPE_TYPE;//GET_NEW_COLOR(CURRENT_SHAPE_TYPE);
+          IF CURRENT_COLOR > SIZE(BRICK_COLORS) THEN
+            CURRENT_COLOR:=SIZE(BRICK_COLORS);
+          END;
+
+          NEXT_SHAPE_TYPE:=GET_NEW_SHAPE_TYPE();
+          NEXT_SHAPE_ORIENTATION:=GET_NEW_ORIENTATION();
+        ELSE
+          LOCAL TEMP_SHAPE_TYPE:=CURRENT_SHAPE_TYPE;
+          LOCAL TEMP_SHAPE_ORIENTATION:=CURRENT_ORIENTATION;
+          CURRENT_SHAPE_TYPE:=HOLD_SHAPE_TYPE;
+          CURRENT_ORIENTATION:=HOLD_SHAPE_ORIENTATION;
+          HOLD_SHAPE_TYPE:=TEMP_SHAPE_TYPE;
+          HOLD_SHAPE_ORIENTATION:=TEMP_SHAPE_ORIENTATION;
+
+          CURRENT_COLOR:=CURRENT_SHAPE_TYPE;//GET_NEW_COLOR(CURRENT_SHAPE_TYPE);
+          IF CURRENT_COLOR > SIZE(BRICK_COLORS) THEN
+            CURRENT_COLOR:=SIZE(BRICK_COLORS);
+          END;
+        END;
+
+        CURRENT_Y:=0;
+        CURRENT_X:=GET_SHAPE_CENTER_POS(CURRENT_SHAPE_TYPE, CURRENT_ORIENTATION);
+        NUM_HOLD:=NUM_HOLD+1;
+        WAIT_MS(TURN_TIME/10);
+      END;
+
+      // Pause
+      IF ISKEYDOWN(PAUSE_KEY)<>0 THEN
+        PAUSE();
+      END;
+
+      // Help
+      IF ISKEYDOWN(HELP_KEY)<>0 THEN
+        HELP();
+      END;
+    
+      // Choose keys
+      IF ISKEYDOWN(CHOOSE_KEYS_KEY)<>0 THEN
+        CHOOSE_KEYS();
+      END;
+
+      // Reset to default keys
+      IF ISKEYDOWN(RESET_TO_DEFAULT_KEYS_KEY)<>0 THEN
+        RESET_TO_DEFAULT_KEYS();
+      END;
+
+      // Reset game
+      IF ISKEYDOWN(RESET_GAME_KEY)<>0 THEN
+        RESET_GAME(1);
+        TURN_TIME:=GET_SPEED();
+      END;
+    END;
+  
+    IF TST_SHAPE_CAN_MOVE(CURRENT_SHAPE_TYPE, CURRENT_X, CURRENT_Y+1, CURRENT_ORIENTATION)<>0 THEN
+      CURRENT_Y:=CURRENT_Y+1;
+    ELSE
+      COPY_SHAPE_TO_BRICKS_TAB(CURRENT_SHAPE_TYPE, CURRENT_X, CURRENT_Y, CURRENT_COLOR, CURRENT_ORIENTATION);
+      REMOVE_LINES();
+      TURN_TIME:=GET_SPEED();
+
+      IF CURRENT_Y==1 THEN
+        MSGBOX("Game Over");
+        RESET_GAME(0);
+        TURN_TIME:=GET_SPEED();
+      ELSE
+        CURRENT_Y:=1;
+        CURRENT_X:=GET_SHAPE_CENTER_POS(NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION);
+
+        CURRENT_SHAPE_TYPE:=NEXT_SHAPE_TYPE;
+        CURRENT_ORIENTATION:=NEXT_SHAPE_ORIENTATION;
+        CURRENT_COLOR:=CURRENT_SHAPE_TYPE;//GET_NEW_COLOR(CURRENT_SHAPE_TYPE);
+        IF CURRENT_COLOR > SIZE(BRICK_COLORS) THEN
+          CURRENT_COLOR:=SIZE(BRICK_COLORS);
+        END;
+
+        NEXT_SHAPE_TYPE:=GET_NEW_SHAPE_TYPE();
+        NEXT_SHAPE_ORIENTATION:=GET_NEW_ORIENTATION();
+
+        NUM_HOLD:=0;
+      END;
+    END;
+  END;
+END;
+
+
+//
+// INIT_GAME()
+//
+// Initialize the matrix that contains the game and other variables
+//
+
+INIT_GAME()
+BEGIN
+  BRICKS_TAB:=[
+                [0,0,0,0,0,0,0,0,0,0]
+              ];
+
+  FOR I FROM 1 TO BRICKS_TAB_H DO
+    ADDROW(BRICKS_TAB, [0,0,0,0,0,0,0,0,0,0], 1);
+  END;
+
+  CURRENT_SHAPE_TYPE:=GET_NEW_SHAPE_TYPE();
+  CURRENT_ORIENTATION:=GET_NEW_ORIENTATION();
+  CURRENT_COLOR:=CURRENT_SHAPE_TYPE;
+  IF CURRENT_COLOR > SIZE(BRICK_COLORS) THEN
+    CURRENT_COLOR:=SIZE(BRICK_COLORS);
+  END;
+  CURRENT_X:=GET_SHAPE_CENTER_POS(CURRENT_SHAPE_TYPE, CURRENT_ORIENTATION);
+  CURRENT_Y:=1;
+
+  NEXT_SHAPE_TYPE:=GET_NEW_SHAPE_TYPE();
+  NEXT_SHAPE_ORIENTATION:=GET_NEW_ORIENTATION();
+
+  SCORE_NB_LINES:=0;
+  SCORE_NB_POINTS:=0;
+
+  BRICK_BAG:={0, 0, 0, 0, 0, 0, 0};
+END;
+
+
+//
+// INIT_SCREEN()
+//
+
+INIT_SCREEN()
+BEGIN
+  DIMGROB_P(G1, 320, 240);
+END;
+
+
+//
+// DRAW_SCREEN()
+//
+// Draw all screen: decoration, game tab and current moving shape
+//
+// X: *logical* position in number of bricks, begin at 1
+// Y: *logical* position in number of bricks, begin at 1
+//
+
+DRAW_SCREEN(CURRENT_SHAPE_TYPE, X, Y, ORIENTATION, CURRENT_COLOR, NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION)
+BEGIN
+  DRAW_BASE_SCREEN(NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION);
+  DRAW_BRICKS_TAB();
+  DRAW_CURRENT_MOVING_SHAPE(CURRENT_SHAPE_TYPE, X, Y, ORIENTATION, CURRENT_COLOR);
+
+  FLIP_SCREEN();
+END;
+
+
+//
+// DRAW_BASE_SCREEN()
+//
+// Draw decorations, score, lines, level and next shape
+//
+// NEXT_SHAPE_TYPE: type of the next shape
+//
+
+DRAW_BASE_SCREEN(NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION)
+BEGIN
+  RECT_P(G1, 0, 0, 319, 239, 0, RGB(225,225,225));
+  RECT_P(G1, 100, 0, 220, 239, 0, RGB(255,255,255));
+
+  // Vertical lines
+  FOR I FROM 1 TO 9 DO
+    LINE_P(G1, 100+I*BRICK_SIZE, 1, 100+I*BRICK_SIZE, 238, RGB(230, 230, 230));
+  END;
+
+  FOR I FROM 1 TO 19 DO
+    LINE_P(G1, 101, I*BRICK_SIZE, 219, I*BRICK_SIZE, RGB(230, 230, 230));
+  END;
+
+  // Text
+  TEXTOUT_P("Lines", G1, 30, 10, 0);
+  TEXTOUT_P(SCORE_NB_LINES, G1, CENTER_TEXT_NUMBER(SCORE_NB_LINES, 95), 30, 0);
+
+  TEXTOUT_P("Score", G1, 29, 100, 0);
+  TEXTOUT_P(SCORE_NB_POINTS, G1, CENTER_TEXT_NUMBER(SCORE_NB_POINTS, 95), 120, 0);
+
+  TEXTOUT_P("Level", G1, 30, 190, 0);
+  TEXTOUT_P(GET_LEVEL(), G1, CENTER_TEXT_NUMBER(GET_LEVEL(), 95), 210, 0);
+
+  // Next shape
+  TEXTOUT_P("Next", G1, 256, 10, 0);
+
+  LOCAL X=272-(GET_SHAPE_W(NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION)*BRICK_SIZE/2);
+  LOCAL Y=60-(GET_SHAPE_H(NEXT_SHAPE_TYPE, NEXT_SHAPE_ORIENTATION)*BRICK_SIZE/2);
+  DRAW_SHAPE(NEXT_SHAPE_TYPE, X, Y, 1, 1, 100, 100, 100, NEXT_SHAPE_ORIENTATION);
+
+  // Hold shape
+  TEXTOUT_P("Hold", G1, 256, 120, 0);
+  IF HOLD_SHAPE_TYPE<>-1 THEN
+    LOCAL HOLD_X=272-(GET_SHAPE_W(HOLD_SHAPE_TYPE, HOLD_SHAPE_ORIENTATION)*BRICK_SIZE/2);
+    LOCAL HOLD_Y=170-(GET_SHAPE_H(HOLD_SHAPE_TYPE, HOLD_SHAPE_ORIENTATION)*BRICK_SIZE/2);
+    DRAW_SHAPE(HOLD_SHAPE_TYPE, HOLD_X, HOLD_Y, 1, 1, 100, 100, 100, HOLD_SHAPE_ORIENTATION);
+  END;
+END;
+
+
+//
+// DRAW_BRICKS_TAB()
+//
+// Draw the game matrix
+//
+
+DRAW_BRICKS_TAB()
+BEGIN
+  FOR I FROM 1 TO BRICKS_TAB_H DO
+    FOR J FROM 1 TO BRICKS_TAB_W DO
+     IF BRICKS_TAB(I, J)<>0 THEN
+       R:=BRICK_COLORS(BRICKS_TAB(I, J), 1);
+       G:=BRICK_COLORS(BRICKS_TAB(I, J), 2);
+       B:=BRICK_COLORS(BRICKS_TAB(I, J), 3);
+
+       DRAW_BRICK(GAME_OFFSET_X, GAME_OFFSET_Y, J, I, R, G, B);
+      END; 
+    END;
+  END;
+END;
+
+
+//
+// DRAW_CURRENT_MOVING_SHAPE()
+//
+// X: *logical* position in number of bricks, begin at 1
+// Y: *logical* position in number of bricks, begin at 1
+//
+
+DRAW_CURRENT_MOVING_SHAPE(CURRENT_SHAPE_TYPE, X, Y, ORIENTATION, CURRENT_COLOR)
+BEGIN
+  R:=BRICK_COLORS(CURRENT_COLOR, 1);
+  G:=BRICK_COLORS(CURRENT_COLOR, 2);
+  B:=BRICK_COLORS(CURRENT_COLOR, 3);
+
+  DRAW_SHAPE(CURRENT_SHAPE_TYPE, GAME_OFFSET_X, GAME_OFFSET_Y, X, Y, R, G, B, ORIENTATION);
+END;
+
+
+//
+// FLIP_SCREEN()
+//
+// Flip double buffer
+//
+
+FLIP_SCREEN()
+BEGIN
+  BLIT_P(G0, G1);
+END;
+
+
+// UNUSED
+// GET_NEW_COLOR()
+//
+// Return: a random new color
+//
+
+GET_NEW_COLOR()
+BEGIN
+  RETURN RANDINT(1, SIZE(BRICK_COLORS));
+END;
+
+
+//
+// GET_NEW_SHAPE_TYPE()
+//
+// Return: a random new shape type
+//
+
+GET_NEW_SHAPE_TYPE()
+BEGIN
+  LOCAL BRICK_BAG_SUM:=0;
+  FOR I FROM 1 TO NB_SHAPES DO
+    BRICK_BAG_SUM:=BRICK_BAG_SUM+BRICK_BAG(I);
+    //PRINT(BRICK_BAG(I));
+  END;
+  //PRINT("Sum " + BRICK_BAG_SUM);
+  IF BRICK_BAG_SUM==NB_SHAPES THEN 
+    FOR I FROM 1 TO NB_SHAPES DO
+      BRICK_BAG(I):=0;
+    END;
+  END;
+  LOCAL TRIAL_NUM:=RANDINT(1, NB_SHAPES);
+  WHILE(BRICK_BAG(TRIAL_NUM)==1) DO
+    TRIAL_NUM:=RANDINT(1, NB_SHAPES); 
+  END;
+  BRICK_BAG(TRIAL_NUM):=1;
+  //PRINT(BRICK_BAG);
+  //PRINT(TRIAL_NUM);
+  //WAIT(1);
+  //PRINT("Block " + TRIAL_NUM);
+  RETURN TRIAL_NUM;
+END;
+
+
+//
+// GET_NEW_ORIENTATION()
+//
+// Return: a random new orientation
+//
+
+GET_NEW_ORIENTATION()
+BEGIN
+  RETURN RANDINT(1, NB_ORIENTATIONS);
+END;
+
+
+//
+// WAIT_KEY()
+//
+// ID: ID of the key to wait
+//
+
+WAIT_KEY(ID)
+BEGIN
+  WHILE GETKEY<>ID DO
+  END;
+END;
+
+
+//
+// WAIT_MS()
+//
+
+WAIT_MS(MS)
+BEGIN
+  LOCAL BEGIN_TICKS:=TICKS;
+
+  WHILE TICKS<BEGIN_TICKS+MS DO
+    A+A;
+  END;
+END;
+
+
+//
+// DRAW_BRICK()
+//
+// Draw a single brick at the logical position X,Y
+//
+// offset_x: x offset for drawing
+// offset_y: y offset for drawing
+// X: *logical* position in number of bricks, begin at 1
+// Y: *logical* position in number of bricks, begin at 1
+//
+
+DRAW_BRICK(OFFSET_X, OFFSET_Y, X, Y, R, G, B)
+BEGIN
+  LOCAL SCREEN_X:=0;
+  LOCAL SCREEN_Y:=0;
+
+  // X-1 and Y-1 because logical position start at 1 and when x=1 we want to be at offset_x position
+  SCREEN_X:=OFFSET_X+((X-1)*BRICK_SIZE);
+  SCREEN_Y:=OFFSET_Y+((Y-1)*BRICK_SIZE);
+
+  RECT_P(G1, SCREEN_X, SCREEN_Y, SCREEN_X+BRICK_SIZE, SCREEN_Y+BRICK_SIZE, 0, RGB(R,G,B));
+END;
+
+
+//
+// GET_SHAPE()
+//
+// Return: shape structure from the shape type
+//
+
+GET_SHAPE(SHAPE_TYPE, ORIENTATION)
+BEGIN
+  // -1 because SHAPE_TYPE start at 1
+  RETURN SHAPES((SHAPE_TYPE-1)*NB_ORIENTATIONS+ORIENTATION);
+END;
+
+
+//
+// GET_SHAPE_W()
+//
+// Get shape width (from left edge of bounding box to right edge of shape)
+//
+
+GET_SHAPE_W(SHAPE_TYPE, SHAPE_ORIENTATION)
+BEGIN
+  // -1 because SHAPE_TYPE start at 1
+  RETURN SHAPES_W((SHAPE_TYPE-1)*NB_ORIENTATIONS+SHAPE_ORIENTATION);
+END;
+
+
+//
+// GET_SHAPE_H()
+//
+// Get shape height (from top edge of bounding box to bottom edge of shape)
+//
+
+GET_SHAPE_H(SHAPE_TYPE, SHAPE_ORIENTATION)
+BEGIN
+  // -1 because SHAPE_TYPE start at 1
+  RETURN SHAPES_H((SHAPE_TYPE-1)*NB_ORIENTATIONS+SHAPE_ORIENTATION);
+END;
+
+
+//
+// GET_SHAPE_LEFT_START()
+//
+// Get the start of the shape from the left edge of the bounding box
+//
+
+GET_SHAPE_LEFT_START(SHAPE_TYPE, SHAPE_ORIENTATION)
+BEGIN
+  // -1 because SHAPE_TYPE start at 1
+  RETURN SHAPES_LEFT_START((SHAPE_TYPE-1)*NB_ORIENTATIONS+SHAPE_ORIENTATION);
+END;
+
+
+//
+// GET_SHAPE_TOP_START()
+//
+// Get the start of the shape from the top edge of the bounding box
+//
+
+GET_SHAPE_TOP_START(SHAPE_TYPE, SHAPE_ORIENTATION)
+BEGIN
+  // -1 because SHAPE_TYPE start at 1
+  RETURN SHAPES_TOP_START((SHAPE_TYPE-1)*NB_ORIENTATIONS+SHAPE_ORIENTATION);
+END;
+
+
+//
+// GET_KICK_DATA()
+//
+// Get wall kick data
+//
+
+GET_KICK_DATA(SHAPE_TYPE, ORIENTATION)
+BEGIN
+  LOCAL KICK_DATA;
+  CASE 
+    IF SHAPE_TYPE==1 THEN KICK_DATA:=I_KICK_DATA(ORIENTATION) END;
+    IF SHAPE_TYPE==2 THEN KICK_DATA:=O_KICK_DATA(ORIENTATION) END;
+    DEFAULT KICK_DATA:=OTHER_SHAPE_KICK_DATA(ORIENTATION) END;
+  RETURN KICK_DATA;
+END;
+
+
+//
+// GET_SHAPE_CENTER_POS()
+//
+// Get the center position when a shape appears
+//
+
+GET_SHAPE_CENTER_POS(SHAPE_TYPE, SHAPE_ORIENTATION)
+
+BEGIN
+
+  LOCAL HALF_GAME_TAB:=0;
+  LOCAL HALF_SHAPE_SIZE:=0;
+  LOCAL PADDING:=0;
+
+  HALF_GAME_TAB:=BRICKS_TAB_W/2;
+  HALF_SHAPE_SIZE:=TRUNCATE(GET_SHAPE_W(SHAPE_TYPE, SHAPE_ORIENTATION)/2, 0);
+  PADDING:=HALF_GAME_TAB-HALF_SHAPE_SIZE;
+
+  // +1 because we need to be in 4 for a padding of 3 (position start at 1)
+  RETURN PADDING+1;
+END;
+
+
+//
+// DRAW_SHAPE()
+//
+// offset_x: x offset for drawing
+// offset_y: y offset for drawing
+// X: *logical* position in number of bricks, begin at 1
+// Y: *logical* position in number of bricks, begin at 1
+//
+
+DRAW_SHAPE(SHAPE_TYPE, OFFSET_X, OFFSET_Y, X, Y, R, G, B, ORIENTATION)
+BEGIN
+  FOR I FROM 1 TO GET_SHAPE_H(SHAPE_TYPE, ORIENTATION) DO
+    FOR J FROM 1 TO GET_SHAPE_W(SHAPE_TYPE, ORIENTATION) DO
+      LOCAL CURRENT_SHAPE:=GET_SHAPE(SHAPE_TYPE, ORIENTATION);
+      IF CURRENT_SHAPE(I, J)<>0 THEN DRAW_BRICK(OFFSET_X, OFFSET_Y, X+(J-1), Y+(I-1), R, G, B); END;
+    END;
+  END;
+END;
+
+//
+// COPY_SHAPE_TO_BRICKS_TAB()
+//
+// X: *logical* position in number of bricks, begin at 1
+// Y: *logical* position in number of bricks, begin at 1
+//
+
+COPY_SHAPE_TO_BRICKS_TAB(SHAPE_TYPE, X, Y, SHAPE_COLOR, ORIENTATION)
+BEGIN
+  FOR I FROM 1 TO GET_SHAPE_H(SHAPE_TYPE, ORIENTATION) DO
+    FOR J FROM 1 TO GET_SHAPE_W(SHAPE_TYPE, ORIENTATION) DO
+      LOCAL CURRENT_SHAPE:=GET_SHAPE(SHAPE_TYPE, ORIENTATION);
+      IF CURRENT_SHAPE(I, J)<>0 THEN BRICKS_TAB(Y+(I-1), X+(J-1)):=SHAPE_COLOR; END;
+    END;
+  END;
+END;
+
+
+//
+// TST_SHAPE_CAN_MOVE()
+//
+// X: *logical* position in number of bricks, begin at 1
+// Y: *logical* position in number of bricks, begin at 1
+//
+
+TST_SHAPE_CAN_MOVE(SHAPE_TYPE, X, Y, ORIENTATION)
+BEGIN
+  LOCAL CURRENT_SHAPE:=GET_SHAPE(SHAPE_TYPE, ORIENTATION);
+
+  IF X+GET_SHAPE_LEFT_START(SHAPE_TYPE, ORIENTATION)<1 THEN
+    RETURN 0;
+  END;
+
+  // −1 because if shape_w = 2 and x=9 it's ok (first brick at x=9 and second at x=10)
+  IF X+GET_SHAPE_W(SHAPE_TYPE, ORIENTATION)−1 > BRICKS_TAB_W THEN
+    RETURN 0;
+  END;
+
+  // −1 because if shape_h=2 and y=19 it's ok
+  IF Y+GET_SHAPE_H(SHAPE_TYPE, ORIENTATION)−1 > BRICKS_TAB_H THEN
+    RETURN 0;
+  END;
+
+  FOR I FROM 1 TO GET_SHAPE_H(SHAPE_TYPE, ORIENTATION) DO
+    FOR J FROM 1 TO GET_SHAPE_W(SHAPE_TYPE, ORIENTATION) DO
+      IF (CURRENT_SHAPE(I, J)<>0) AND (BRICKS_TAB(Y+(I-1), X+(J-1))<>0) THEN
+        RETURN 0;
+      END;
+    END;
+  END;
+  
+  RETURN 1;
+END;
+
+
+//
+// REMOVE_LINES()
+//
+// Remove completed lines
+//
+
+REMOVE_LINES()
+BEGIN
+  LOCAL FLAG:=0;
+  LOCAL NB_NEW_LINES:=0;
+
+  FOR I FROM 1 TO BRICKS_TAB_H DO
+    FLAG:=1;
+
+    FOR J FROM 1 TO BRICKS_TAB_W DO
+      IF BRICKS_TAB(I, J)==0 THEN
+        // This line is not full
+        FLAG:=0;
+        BREAK; 
+      END;
+    END;
+
+    // Full line find
+    IF FLAG==1 THEN
+      DELROW(BRICKS_TAB, I);
+      ADDROW(BRICKS_TAB, [0,0,0,0,0,0,0,0,0,0], 1);
+      NB_NEW_LINES:=NB_NEW_LINES+1;
+    END;
+  END;
+
+  SCORE_NB_LINES:=SCORE_NB_LINES+NB_NEW_LINES;
+  SCORE_NB_POINTS:=SCORE_NB_POINTS+((NB_NEW_LINES^2)*10);
+END;
+
+
+//
+// GET_LEVEL()
+//
+// Return: the level compute from score
+//
+
+GET_LEVEL()
+BEGIN
+  RETURN ROUND(SCORE_NB_POINTS/500,0);
+END;
+
+
+//
+// GET_SPEED()
+//
+// Return: the current speed for moving shape
+//
+
+GET_SPEED()
+BEGIN
+  LOCAL SPEED:=800-(100*GET_LEVEL());
+  IF SPEED<100 THEN SPEED:=100; END;
+
+  RETURN SPEED;
+END;
+
+
+//
+// PAUSE()
+//
+
+PAUSE()
+BEGIN
+  WAIT_MS(1000);
+  WAIT_KEY(PAUSE_KEY);
+  WAIT_MS(1000);
+END;
+
+
+//
+// HELP()
+//
+
+HELP()
+BEGIN
+  MSGBOX("BRICKS V0.3");
+  MSGBOX("DEFAULT KEYS: Left [A], Right [B], Drop [G], Hard Drop [ENTER], Rotate [DEL], Pause [APPS], Quit [ESC],");
+  MSGBOX("Choose custom keys [VIEWS], Reset to default keys [MENU], Reset game [CAS]");
+END;
+
+
+//
+// CHOOSE_KEYS()
+//
+// Choose custom keys
+//
+
+CHOOSE_KEYS()
+BEGIN
+  MSGBOX("Left");
+  LEFT_KEY:=CHOOSE_KEY();
+
+  MSGBOX("Right");
+  RIGHT_KEY:=CHOOSE_KEY();
+
+  MSGBOX("Drop");
+  DOWN_KEY:=CHOOSE_KEY();
+
+  MSGBOX("Hard Drop");
+  MAX_DOWN_KEY:=CHOOSE_KEY();
+
+  MSGBOX("Rotate");
+  ROTATE_KEY:=CHOOSE_KEY();
+END;
+
+
+//
+// CHOOSE_KEY()
+//
+
+CHOOSE_KEY()
+BEGIN
+  LOCAL KEY:=-1;
+
+  WHILE (KEY==-1) OR (KEY==0) OR (KEY==3) OR (KEY==9) OR (KEY==13) OR (KEY==4) OR (KEY==10) DO
+    KEY:=GETKEY();
+  END;
+
+  RETURN KEY;
+END;
+
+
+//
+// RESET_TO_DEFAULT_KEYS()
+//
+
+RESET_TO_DEFAULT_KEYS()
+BEGIN
+  C:=MSGBOX("Are you sure you want to reset keys to default?", 1);
+
+  IF C==1 THEN
+    LEFT_KEY:=14;
+    RIGHT_KEY:=15;
+    DOWN_KEY:=21;
+    MAX_DOWN_KEY:=30;
+    ROTATE_KEY:=19;
+  END;
+END;
+
+
+//
+// RESET_GAME()
+//
+
+RESET_GAME(ASK_CONFIRMATION)
+BEGIN
+  IF ASK_CONFIRMATION==1 THEN
+    C:=MSGBOX("Are you sure you want to reset the game?", 1);
+  END;
+
+  IF C==1 THEN
+    INIT_GAME();
+  END; 
+END;
+
+
+//
+// QUIT()
+//
+
+QUIT()
+BEGIN
+  C:=MSGBOX("Are you sure you want to quit?", 1);
+
+  // If want to quit, ask if save the game
+  IF C==1 THEN
+     D:=MSGBOX("Do you want to save the game?", 1);
+
+     // Don't save, reset
+     IF D==0 THEN
+       INIT_GAME();
+     END; 
+  END;
+
+  RETURN C;
+END;
+
+
+//
+// CENTER_TEXT_NUMBER()
+//
+
+CENTER_TEXT_NUMBER(NUMBER, WIDTH)
+BEGIN
+  LOCAL TEXT_NUMBER_WIDTH:=DIM(STRING(NUMBER))*TEXT_DIGIT_WIDTH;
+
+  RETURN (WIDTH-TEXT_NUMBER_WIDTH)/2;
+END;
